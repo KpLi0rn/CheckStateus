@@ -70,8 +70,10 @@ class Check_State(object):
             if len(value) == 0:
                 continue
             else:
+            	value = value.strip('\r').strip('\n')
+            	value = value.replace(' ','')
                 if value not in self.data:
-                    self.data.add(value.strip('\r'))
+                    self.data.add(value)
                 else:
                     continue
 
