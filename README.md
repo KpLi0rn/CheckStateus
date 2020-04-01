@@ -1,4 +1,4 @@
-# CheckState
+# CheckStateus
 python3 环境
 
 `pip3 install pyperclip`
