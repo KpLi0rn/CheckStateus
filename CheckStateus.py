@@ -3,7 +3,8 @@
 
 import urllib3
 import requests
-import multiprocessing as mp
+import threading
+# import multiprocessing as mp
 import time
 import random
 
@@ -104,12 +105,13 @@ class Check_State(object):
             print("\033[31m%s\033[0m  --->>  \033[31mtimeout\033[0m" % (str(url)))
 
     def Run(self):
-        pool = mp.Pool()
         self.Paste_Res()
         target = (url for url in self.data)
-        [pool.apply_async(self.check,(domain,)) for domain in target]
-        pool.close()
-        pool.join()
+        threadlist = [threading.Thread(target=self.check,args=(domain,)) for domain in target]
+        for t in threadlist:
+            t.start()
+        for p in threadlist:
+            p.join()
 
 if __name__ == '__main__':
     try:
