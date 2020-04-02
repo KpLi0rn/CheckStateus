@@ -56,7 +56,7 @@ def banner():
      / ___| |__   ___  ___| | __/ ___|| |_ __ _| |_ _   _ ___ 
     | |   | '_ \ / _ \/ __| |/ /\___ \| __/ _` | __| | | / __|
     | |___| | | |  __/ (__|   <  ___) | || (_| | |_| |_| \__ \\
-     \____|_| |_|\___|\___|_|\_\|____/ \__\__,_|\__|\__,_|___/ \033[0mv1.01
+     \____|_| |_|\___|\___|_|\_\|____/ \__\__,_|\__|\__,_|___/ \033[0mv1.02
         
         # Coded By KpLi0rn Website: https://www.wjlshare.xyz
         """ )
@@ -93,16 +93,16 @@ class Check_State(object):
                 url = "http://" + url
             code = str(s.get(url, headers=headers, timeout=6, verify=False).status_code)   # 正常的返回code是int类型
             if code.startswith("2"):
-                print("\033[0m%s\033[0m  --->>  \033[32m%s\033[0m" % (url,code))
+                print("\033[1;37m%s\033[0m  --->>  \033[1;32m%s\033[0m" % (url,code))
             if code.startswith("3"):
-                print("\033[0m%s\033[0m  --->>  \033[33m%s\033[0m" % (url,code))
+                print("\033[1;37m%s\033[0m  --->>  \033[1;33m%s\033[0m" % (url,code))
             if code.startswith("4"):
-                print("\033[0m%s\033[0m  --->>  \033[34m%s\033[0m" % (url, code))
+                print("\033[1;37m%s\033[0m  --->>  \033[1;34m%s\033[0m" % (url, code))
             if code.startswith("5"):
-                print("\033[0m%s\033[0m  --->>  \033[0m%s\033[0m" % (url, code))
+                print("\033[1;37m%s\033[0m  --->>  \033[1;37m%s\033[0m" % (url, code))
         except:
             # print(str(e))
-            print("\033[31m%s\033[0m  --->>  \033[31mtimeout\033[0m" % (str(url)))
+            print("\033[1;31m%s\033[0m  --->>  \033[1;31mtimeout\033[0m" % (str(url)))
 
     def Run(self):
         self.Paste_Res()
