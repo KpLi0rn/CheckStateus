@@ -2,68 +2,34 @@
 # coding: utf-8
 
 import urllib3
-import requests
 import threading
-# import multiprocessing as mp
 import time
-import random
-
+from concurrent.futures import ThreadPoolExecutor
+# 第三方库
 import pyperclip
+import requests
+from fake_useragent import UserAgent
 
-user_agent = [
-"Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50",
-"Mozilla/5.0 (Windows; U; Windows NT 6.1; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50",
-"Mozilla/5.0 (Windows NT 10.0; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0",
-"Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; InfoPath.3; rv:11.0) like Gecko",
-"Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)",
-"Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0)",
-"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)",
-"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)",
-"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1",
-"Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) Gecko/20100101 Firefox/4.0.1",
-"Opera/9.80 (Macintosh; Intel Mac OS X 10.6.8; U; en) Presto/2.8.131 Version/11.11",
-"Opera/9.80 (Windows NT 6.1; U; en) Presto/2.8.131 Version/11.11",
-"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11",
-"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Maxthon 2.0)",
-"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; TencentTraveler 4.0)",
-"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)",
-"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; The World)",
-"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; SE 2.X MetaSr 1.0; SE 2.X MetaSr 1.0; .NET CLR 2.0.50727; SE 2.X MetaSr 1.0)",
-"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; 360SE)",
-"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Avant Browser)",
-"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)",
-"Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5",
-"Mozilla/5.0 (iPod; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5",
-"Mozilla/5.0 (iPad; U; CPU OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5",
-"Mozilla/5.0 (Linux; U; Android 2.3.7; en-us; Nexus One Build/FRF91) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1",
-"MQQBrowser/26 Mozilla/5.0 (Linux; U; Android 2.3.7; zh-cn; MB200 Build/GRJ22; CyanogenMod-7) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1",
-"Opera/9.80 (Android 2.3.4; Linux; Opera Mobi/build-1107180945; U; en-GB) Presto/2.8.149 Version/11.10",
-"Mozilla/5.0 (Linux; U; Android 3.0; en-us; Xoom Build/HRI39) AppleWebKit/534.13 (KHTML, like Gecko) Version/4.0 Safari/534.13",
-"Mozilla/5.0 (BlackBerry; U; BlackBerry 9800; en) AppleWebKit/534.1+ (KHTML, like Gecko) Version/6.0.0.337 Mobile Safari/534.1+",
-"Mozilla/5.0 (hp-tablet; Linux; hpwOS/3.0.0; U; en-US) AppleWebKit/534.6 (KHTML, like Gecko) wOSBrowser/233.70 Safari/534.6 TouchPad/1.0",
-"Mozilla/5.0 (SymbianOS/9.4; Series60/5.0 NokiaN97-1/20.0.019; Profile/MIDP-2.1 Configuration/CLDC-1.1) AppleWebKit/525 (KHTML, like Gecko) BrowserNG/7.1.18124",
-"Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0; HTC; Titan)",
-"UCWEB7.0.2.37/28/999",
-"NOKIA5700/ UCWEB7.0.2.37/28/999",
-"Openwave/ UCWEB7.0.2.37/28/999",
-"Mozilla/4.0 (compatible; MSIE 6.0; ) Opera/UCWEB7.0.2.37/28/999",
-]
+# 自定义模块
+
 
 def banner():
-
     print("""\033[36m
       ____ _               _     ____  _        _             
      / ___| |__   ___  ___| | __/ ___|| |_ __ _| |_ _   _ ___ 
     | |   | '_ \ / _ \/ __| |/ /\___ \| __/ _` | __| | | / __|
     | |___| | | |  __/ (__|   <  ___) | || (_| | |_| |_| \__ \\
-     \____|_| |_|\___|\___|_|\_\|____/ \__\__,_|\__|\__,_|___/ \033[0mv1.02
-        
-        # Coded By KpLi0rn Website: https://www.wjlshare.xyz
-        """ )
+     \____|_| |_|\___|\___|_|\_\|____/ \__\__,_|\__|\__,_|___/ \033[0m
 
-class Check_State(object):
+        # Coded By KpLi0rn Website: https://www.wjlshare.xyz
+        """)
+
+class Checkstatus(object):
     def __init__(self):
         self.data = set()
+
+    # fofa 语句搜索模块
+    # 缺少一个检测 fofa页面回显的功能
 
 
     def Paste_Res(self):
@@ -74,32 +40,33 @@ class Check_State(object):
                 value = value.strip('\r').strip('\n')
                 value = value.replace(' ', '')
                 if value not in self.data:
+                    if not value.startswith("http"):
+                        value = "http://" + value
                     self.data.add(value)
                 else:
                     continue
 
-    def check(self,url):
-        urllib3.disable_warnings()   # 禁止跳出来对warning
+
+    def check(self, url):
+        ua = UserAgent(verify_ssl=False)
+        urllib3.disable_warnings()  # 禁止跳出来对warning
         headers = {
-            'User-Agent': random.choice(user_agent),
+            'User-Agent': ua.random,
             'Content-Type': 'application/x-www-form-urlencoded',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
         }
         s = requests.Session()
         s.keep_alive = False
         try:
-            # if len(url.split('.')) > 0:
-            if not url.startswith("http"):
-                url = "http://" + url
-            code = str(s.get(url, headers=headers, timeout=6, verify=False).status_code)   # 正常的返回code是int类型
+            code = str(s.get(url, headers=headers, timeout=6, verify=False).status_code)  # 正常的返回code是int类型
             if code.startswith("2"):
-                print("\033[1;37m%s\033[0m  --->>  \033[1;32m%s\033[0m" % (url,code))
+                print("\033[1;0m%s\033[0m  --->>  \033[1;32m%s\033[0m" % (url, code))
             if code.startswith("3"):
-                print("\033[1;37m%s\033[0m  --->>  \033[1;33m%s\033[0m" % (url,code))
+                print("\033[1;0m%s\033[0m  --->>  \033[1;33m%s\033[0m" % (url, code))
             if code.startswith("4"):
-                print("\033[1;37m%s\033[0m  --->>  \033[1;34m%s\033[0m" % (url, code))
+                print("\033[1;0m%s\033[0m  --->>  \033[1;34m%s\033[0m" % (url, code))
             if code.startswith("5"):
-                print("\033[1;37m%s\033[0m  --->>  \033[1;37m%s\033[0m" % (url, code))
+                print("\033[1;0m%s\033[0m  --->>  \033[1;0m%s\033[0m" % (url, code))
         except:
             # print(str(e))
             print("\033[1;31m%s\033[0m  --->>  \033[1;31mtimeout\033[0m" % (str(url)))
@@ -107,19 +74,17 @@ class Check_State(object):
     def Run(self):
         self.Paste_Res()
         target = (url for url in self.data)
-        threadlist = [threading.Thread(target=self.check,args=(domain,)) for domain in target]
-        for t in threadlist:
-            t.start()
-        for p in threadlist:
-            p.join()
+        pool = ThreadPoolExecutor(10)
+        [pool.submit(self.check,domain) for domain in target]
+
 
 if __name__ == '__main__':
     try:
         banner()
         start = time.time()
-        che = Check_State()
+        che = Checkstatus()
         che.Run()
         end = time.time()
-        print("\n消耗{:.2f}s".format(end-start))
+        print("\n消耗{:.2f}s".format(end - start))
     except KeyboardInterrupt:
         print("停止中...")
